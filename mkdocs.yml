@@ -1,1 +1,30 @@
-site_name: My Docs
+site_name: Simple Blogs
+site_url: https://foodszhang.github.io/
+site_author: foodszhang
+nav:
+  - Home: index.md
+  - 学习:
+    - MIT6.S081:
+      - learn/MIT6.S081/前言.md
+      - learn/MIT6.S081/Lab1.md
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.tracking
+    - navigation.top
+    - search.highlight
+plugins:
+  - search:
+      lang: zh
+  - tags
+markdown_extensions:
+  - meta
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
