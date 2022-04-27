@@ -18,6 +18,7 @@ plugins:
   - search:
       lang: zh
   - tags
+  - git-revision-date-localized
 markdown_extensions:
   - meta
   - pymdownx.highlight:

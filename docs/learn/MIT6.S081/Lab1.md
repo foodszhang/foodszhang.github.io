@@ -19,93 +19,27 @@ git clone git://g.csail.mit.edu/xv6-labs-2021
 剩下没啥问题
 
 ##primes (moderate)
-难度开始有所提升， 乍一看不知道如何入手，[这个网页](http://swtch.com/~rsc/thread/) 的描述性文字其实我都没咋看， 那张图很关键
+难度开始有所提升， 乍一看不知道如何入手，[这个网页](http://swtch.com/~rsc/thread/) 的描述性文字其实我都没咋看， 
+
+不过那张图很关键
 ![算法](https://swtch.com/~rsc/thread/sieve.gif)
 这玩意实际是多个进程， 每个进程和自己的父进程与子进程通过管道传输数据， 输出每个进程收到的第一个数字， 并过滤掉这个数字的倍数， 并将剩余数字传递给子进程
-```c
-#include "kernel/types.h"
-#include "kernel/stat.h"
-#include "user/user.h"
-
-int create_child(int fd){
-    int pipefd[2];
-    int result = pipe(pipefd);
-    if(result == -1){
-        int s;
-        int r = read(fd,&s,4);
-        if(r <= 0){
-            exit(0);
-        }
-        //printf("prime %d\n", s);
-        printf("prime %d\n", s);
-        close(fd);
-        exit(0);
-    }
-    int pid = fork();
-
-    if(pid!=0){
-        close(pipefd[0]);
-        int first = 0;
-        while(1){
-            int s;
-            int r = read(fd,&s,4);
-            if(r <= 0){
-                break;
-            }
-            if(first == 0){
-                printf("prime %d\n", s);
-                first = s;
-                continue;
-            }
-            if(s % first != 0){
-                //printf("prime %d\n", s);
-                write(pipefd[1], &s, 4);
-            }
-        }
-        close(pipefd[1]);
-        close(fd);
-        wait(0);
-        
-    } else {
-        close(pipefd[1]);
-        create_child(pipefd[0]);
-    }
-    exit(0);
-
-}
-
-
-int main(int argc, char *argv[]){
-    int pipefd[2];
-    int result = pipe(pipefd);
-    if(result == -1){
-        exit(0);
-    }
-    int pid = fork();
-    if(pid==0){
-        close(pipefd[1]);
-        create_child(pipefd[0]);
-    } else {
-        int s=2;
-        close(pipefd[0]);
-        while(1){
-            write(pipefd[1], &s, 4);
-            s += 1;
-            if (s> 35){
-                break;
-            }
-        }
-        close(pipefd[1]);
-        wait(0);
-    }
-    exit(0);
-}
-```
 
 关键点：
 
 * 这里系统的fd很容易超， 所以一开始写的有问题的时候， 数字总是不够
 * pipe的返回值如果是-1， 代表无法新建新的fd，同时如果read读管道的返回值=0， 说明写管道已经被关闭了
 ( 这里如果一个进程fork出子进程， fd是会被重复使用的， 也就是单纯父进程关闭fd， fd并不会关闭， 因为实际子进程也有一个保持的状态， 所以操作就得是， 读进程把写管道事先关闭， 写进程把读管道事先关闭， 从而达到父进程关闭写管道后， read读管道返回0。
+
+
+## find(moderate)
+纯偷懒了一次， 大部分代码直接抄的ls.c, 自己根本没细看文件结构, 这样其实这就很简单了， 唯一出现问题的地方， 就是ls.c里的fmtname跟我预期的不太一样， 居然末尾米有'\0'
+反而是用空格填充， 第一次就中招了， 字符串怎么匹配都不对， 这玩意还没办法直接debug
+
+## xargs(moderate)
+也不算难题， 也没用到新的知识点， 做完上面的作业这个没啥特别的
+关键点：
+* 管道符后实际是作为下个命令的标准输入， 而不是运行参数
+* 使用fork后子进程执行完命令可以直接退出， 如果子进程也会开启新的子进程反而会有问题
 
 
